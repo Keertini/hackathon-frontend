@@ -1,0 +1,33 @@
+export const languageOptions = [
+  { code: "en-US", label: "English (US)" },
+  { code: "es-ES", label: "Spanish (Español)" },
+  { code: "fr-FR", label: "French (Français)" },
+  { code: "de-DE", label: "German (Deutsch)" },
+  { code: "zh-CN", label: "Chinese (简体中文)" },
+  { code: "zh-TW", label: "Chinese (繁體中文)" },
+  { code: "ja-JP", label: "Japanese (日本語)" },
+  { code: "ko-KR", label: "Korean (한국어)" },
+  { code: "ru-RU", label: "Russian (Русский)" },
+  { code: "pt-PT", label: "Portuguese (Português)" },
+  { code: "ar-SA", label: "Arabic (العربية)" },
+  { code: "hi-IN", label: "Hindi (हिंदी)" },
+  { code: "it-IT", label: "Italian (Italiano)" },
+  { code: "ta-IN", label: "Tamil (தமிழ்)" },
+];
+
+export const gTTSLanguageMap = {
+  "en-US": "en",
+  "es-ES": "es",
+  "fr-FR": "fr",
+  "de-DE": "de",
+  "zh-CN": "zh-CN",
+  "zh-TW": "zh-CN",
+  "ja-JP": "ja",
+  "ko-KR": "ko",
+  "ru-RU": "ru",
+  "pt-PT": "pt",
+  "ar-SA": "ar",
+  "hi-IN": "hi",
+  "it-IT": "it",
+  "ta-IN": "ta",
+};
