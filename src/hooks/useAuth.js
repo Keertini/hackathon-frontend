@@ -1,9 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import config from "../config";
 
 export default function useAuth() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    // Initialize from localStorage
+    () => localStorage.getItem("isLoggedIn") === "true"
+  );
   const [authError, setAuthError] = useState("");
+  const [username, setUsername] = useState(
+    () => localStorage.getItem("username") || ""
+  );
+
+  useEffect(() => {
+    // Keep localStorage updated whenever state changes
+    localStorage.setItem("isLoggedIn", isLoggedIn);
+    localStorage.setItem("username", username);
+  }, [isLoggedIn, username]);
 
   const signup = async (username, password) => {
     setAuthError("");
@@ -26,6 +38,7 @@ export default function useAuth() {
     const data = await res.json();
     if (data.success) {
       setIsLoggedIn(true);
+      setUsername(username);
     } else {
       throw new Error(data.error || "Login failed");
     }
@@ -33,7 +46,19 @@ export default function useAuth() {
 
   const logout = () => {
     setIsLoggedIn(false);
+    setUsername("");
+    // Clear storage
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("username");
   };
 
-  return { isLoggedIn, authError, signup, login, logout, setAuthError };
+  return {
+    isLoggedIn,
+    authError,
+    signup,
+    login,
+    logout,
+    username,
+    setAuthError,
+  };
 }
