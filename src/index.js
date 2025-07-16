@@ -5,20 +5,6 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
-const cors = require("cors");
-
-// Allow frontend domain
-App.use(
-  cors({
-    origin: [
-      "https://hackathon-frontend-delta-six.vercel.app",
-      "http://localhost:3000", // For local dev
-    ],
-    methods: ["GET", "POST"],
-    credentials: true,
-  })
-);
-
 root.render(
   <React.StrictMode>
     <App />
