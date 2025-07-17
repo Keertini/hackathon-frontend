@@ -7,28 +7,26 @@ import useSafety from "./hooks/useSafety";
 import useProximity from "./hooks/useProximity";
 import useWeather from "./hooks/useWeather";
 import useForecast from "./hooks/useForecast";
-
+import useMLPrediction from "./hooks/useMLPrediction";
 import AuthForm from "./components/AuthForm";
 import PromptForm from "./components/PromptForm";
 import ResponseBox from "./components/ResponseBox";
 import Dashboard from "./components/Dashboard";
 
 function App() {
-  const {
-    isLoggedIn,
-    authError,
-    username,
-    signup,
-    login,
-    logout,
-    userId
-  } = useAuth();
+  const { isLoggedIn, authError, username, signup, login, logout, userId } =
+    useAuth();
 
   const { seatbeltOn, handleSeatbeltClick } = useSafety();
   const { distance, alert: proximityAlert } = useProximity();
   const { weather, loading: weatherLoading } = useWeather();
   const { forecast, loading: forecastLoading } = useForecast();
-
+  const {
+    result,
+    predictTime,
+    loading: mlLoading,
+    error: mlError,
+  } = useMLPrediction();
   const { loading, response, setResponse, submitPrompt } = usePrompt();
   const [prompt, setPrompt] = useState("");
   const [model, setModel] = useState("gemini");
@@ -188,6 +186,39 @@ function App() {
 
             {/* Response Output */}
             <ResponseBox response={response} />
+            <div className="my-6 p-4 border rounded-lg bg-gray-50">
+              <h2 className="text-lg font-semibold mb-2">
+                🧠 ML Task Time Estimator
+              </h2>
+              <button
+                onClick={predictTime}
+                className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+              >
+                Generate & Predict
+              </button>
+
+              {mlLoading && <p className="mt-2">🔄 Predicting...</p>}
+              {mlError && <p className="mt-2 text-red-500">{mlError}</p>}
+
+              {result && (
+                <div className="mt-4 text-sm text-gray-800">
+                  <p>
+                    For the conditions: <br />
+                    <strong>Engine Hours:</strong> {result.input.engine_hours}{" "}
+                    hrs, <strong>Fuel Used:</strong> {result.input.fuel_used} L,
+                    <br />
+                    <strong>Load Cycles:</strong> {result.input.load_cycles},{" "}
+                    <strong>Temperature:</strong> {result.input.temperature}°C,{" "}
+                    <strong>Wind Speed:</strong> {result.input.wind_speed} km/h,{" "}
+                    <strong>Humidity:</strong> {result.input.humidity}%
+                  </p>
+                  <p className="mt-2 font-semibold text-green-700">
+                    → Predicted Task Completion Time:{" "}
+                    {result.predicted_task_time} hours
+                  </p>
+                </div>
+              )}
+            </div>
           </main>
 
           {/* Right Sidebar - Dashboard */}
