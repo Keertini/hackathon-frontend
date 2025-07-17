@@ -5,6 +5,8 @@ import useSpeech from "./hooks/useSpeech";
 import useHistory from "./hooks/useHistory";
 import useSafety from "./hooks/useSafety";
 import useProximity from "./hooks/useProximity";
+import useWeather from "./hooks/useWeather";
+import useForecast from "./hooks/useForecast";
 import AuthForm from "./components/AuthForm";
 import PromptForm from "./components/PromptForm";
 import ResponseBox from "./components/ResponseBox";
@@ -12,7 +14,7 @@ import ResponseBox from "./components/ResponseBox";
 function App() {
   const { isLoggedIn, authError, username, signup, login, logout } = useAuth();
   const machineId = "MACH123";
-  const { seatbeltOn, handleSeatbeltClick } = useSafety(username, machineId);
+  const { seatbeltOn, handleSeatbeltClick } = useSafety();
   const { loading, response, setResponse, submitPrompt } = usePrompt();
   const [prompt, setPrompt] = useState("");
   const [model, setModel] = useState("gemini");
@@ -25,7 +27,9 @@ function App() {
     error: historyError,
     refresh,
   } = useHistory(username);
-  const { distance, alert: proximityAlert } = useProximity(username, machineId);
+  const { distance, alert: proximityAlert } = useProximity();
+  const { weather, loading: weatherLoading } = useWeather();
+  const { forecast, loading: forecastLoading } = useForecast();
 
   return (
     <div className="App flex h-screen">
@@ -45,16 +49,6 @@ function App() {
                   logout();
                   setPrompt("");
                   setResponse("");
-                  fetch("/api/security/update", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      username,
-                      machine_id: machineId,
-                      seatbelt: false,
-                      safety_alert_triggered: false,
-                    }),
-                  });
                 }}
                 className="bg-red-500 text-white px-3 py-1 rounded"
               >
@@ -84,30 +78,83 @@ function App() {
 
           {/* Main Content */}
           <main className="flex-1 p-6 overflow-y-auto">
-            <h1 className="text-3xl font-bold mb-4">LLM Prompt</h1>
-            <div className="mb-4 p-4 border rounded bg-yellow-100 flex justify-between items-center">
-              <div>
-                <strong>Seatbelt Status:</strong>{" "}
-                {seatbeltOn ? "✅ Fastened" : "❌ Not Fastened"}
+            <h1 className="text-3xl font-bold mb-6">LLM Prompt</h1>
+
+            {/* Status Section */}
+            <div className="mb-6 grid grid-cols-1 gap-4">
+              {/* Seatbelt Status */}
+              <div className="p-4 border rounded bg-yellow-100 flex justify-between items-center">
+                <div>
+                  <strong>Seatbelt Status:</strong>{" "}
+                  {seatbeltOn ? "✅ Fastened" : "❌ Not Fastened"}
+                </div>
+                <button
+                  onClick={handleSeatbeltClick}
+                  className={`w-44 py-2 rounded text-white text-sm font-medium ${
+                    seatbeltOn ? "bg-green-600" : "bg-red-600"
+                  }`}
+                >
+                  {seatbeltOn ? "Unfasten Seatbelt" : "Fasten Seatbelt"}
+                </button>
               </div>
-              <button
-                onClick={handleSeatbeltClick}
-                className={`px-4 py-2 rounded ${
-                  seatbeltOn ? "bg-green-600" : "bg-red-600"
-                } text-white`}
-              >
-                {seatbeltOn ? "Unfasten Seatbelt" : "Fasten Seatbelt"}
-              </button>
+
+              {/* Proximity Alert */}
               <div
-                className={`mb-4 p-4 border rounded ${
+                className={`p-4 border rounded flex justify-between items-center ${
                   proximityAlert ? "bg-red-100" : "bg-green-100"
                 }`}
               >
-                <strong>Proximity:</strong>{" "}
-                {distance ? `${distance} meters` : "Loading..."}{" "}
-                {proximityAlert ? "🚨 DANGER!" : "✅ Safe"}
+                <div>
+                  <strong>Proximity:</strong>{" "}
+                  {distance ? `${distance} meters` : "Loading..."}{" "}
+                  {proximityAlert ? "🚨 DANGER!" : "✅ Safe"}
+                </div>
+                <div className="w-44" /> {/* Spacer to align with button */}
+              </div>
+
+              {/* Weather Section */}
+              <div
+                className={`p-6 border-2 rounded-lg ${
+                  weather?.insight?.includes("⛔") ||
+                  weather?.insight?.includes("🚨")
+                    ? "bg-red-100"
+                    : "bg-blue-100"
+                }`}
+              >
+                <strong className="text-lg">Weather Insight:</strong>{" "}
+                {weatherLoading ? (
+                  <p>Loading...</p>
+                ) : weather ? (
+                  <p className="mb-3">
+                    {weather.insight} ({weather.temperature}°C, Wind:{" "}
+                    {weather.wind_speed} km/h)
+                  </p>
+                ) : (
+                  "Unavailable"
+                )}
+                <h3 className="text-lg font-semibold mb-2">5-Day Forecast</h3>
+                {forecastLoading ? (
+                  <p>Loading forecast...</p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    {forecast.map((day) => (
+                      <div
+                        key={day.date}
+                        className="p-3 border rounded bg-white shadow-sm text-sm"
+                      >
+                        <p className="font-medium">{day.date}</p>
+                        <p>{day.description}</p>
+                        <p>
+                          {day.temperature}°C, Wind: {day.wind_speed} km/h
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
+
+            {/* Prompt Input */}
             <PromptForm
               model={model}
               setModel={setModel}
@@ -126,6 +173,8 @@ function App() {
               isAudioPlaying={isAudioPlaying}
               loading={loading}
             />
+
+            {/* Response Output */}
             <ResponseBox response={response} />
           </main>
         </>
