@@ -3,19 +3,21 @@ import config from "../config";
 
 export default function useAuth() {
   const [isLoggedIn, setIsLoggedIn] = useState(
-    // Initialize from localStorage
     () => localStorage.getItem("isLoggedIn") === "true"
   );
   const [authError, setAuthError] = useState("");
   const [username, setUsername] = useState(
     () => localStorage.getItem("username") || ""
   );
+  const [userId, setUserId] = useState(
+    () => localStorage.getItem("userId") || ""
+  );
 
   useEffect(() => {
-    // Keep localStorage updated whenever state changes
     localStorage.setItem("isLoggedIn", isLoggedIn);
     localStorage.setItem("username", username);
-  }, [isLoggedIn, username]);
+    localStorage.setItem("userId", userId);
+  }, [isLoggedIn, username, userId]);
 
   const signup = async (username, password) => {
     setAuthError("");
@@ -26,6 +28,9 @@ export default function useAuth() {
     });
     const data = await res.json();
     if (!data.success) throw new Error(data.error || "Signup failed");
+
+    // Auto login after successful signup
+    await login(username, password);
   };
 
   const login = async (username, password) => {
@@ -38,7 +43,8 @@ export default function useAuth() {
     const data = await res.json();
     if (data.success) {
       setIsLoggedIn(true);
-      setUsername(username);
+      setUsername(data.username);
+      setUserId(data.user_id);
     } else {
       throw new Error(data.error || "Login failed");
     }
@@ -47,9 +53,10 @@ export default function useAuth() {
   const logout = () => {
     setIsLoggedIn(false);
     setUsername("");
-    // Clear storage
+    setUserId("");
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("username");
+    localStorage.removeItem("userId");
   };
 
   return {
@@ -59,6 +66,7 @@ export default function useAuth() {
     login,
     logout,
     username,
+    userId,
     setAuthError,
   };
 }

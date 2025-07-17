@@ -7,41 +7,53 @@ import useSafety from "./hooks/useSafety";
 import useProximity from "./hooks/useProximity";
 import useWeather from "./hooks/useWeather";
 import useForecast from "./hooks/useForecast";
+
 import AuthForm from "./components/AuthForm";
 import PromptForm from "./components/PromptForm";
 import ResponseBox from "./components/ResponseBox";
+import Dashboard from "./components/Dashboard";
 
 function App() {
-  const { isLoggedIn, authError, username, signup, login, logout } = useAuth();
-  const machineId = "MACH123";
+  const {
+    isLoggedIn,
+    authError,
+    username,
+    signup,
+    login,
+    logout,
+    userId
+  } = useAuth();
+
   const { seatbeltOn, handleSeatbeltClick } = useSafety();
+  const { distance, alert: proximityAlert } = useProximity();
+  const { weather, loading: weatherLoading } = useWeather();
+  const { forecast, loading: forecastLoading } = useForecast();
+
   const { loading, response, setResponse, submitPrompt } = usePrompt();
   const [prompt, setPrompt] = useState("");
   const [model, setModel] = useState("gemini");
   const [language, setLanguage] = useState("en-US");
+
   const { isRecording, isAudioPlaying, startRecording, readAloud } =
     useSpeech(language);
+
   const {
     history,
     loading: historyLoading,
     error: historyError,
     refresh,
   } = useHistory(username);
-  const { distance, alert: proximityAlert } = useProximity();
-  const { weather, loading: weatherLoading } = useWeather();
-  const { forecast, loading: forecastLoading } = useForecast();
 
   return (
-    <div className="App flex h-screen">
+    <div className="App h-screen">
       {!isLoggedIn ? (
-        // If not logged in, show the Auth Form centered
         <div className="m-auto w-full max-w-sm p-4">
           <AuthForm onSignup={signup} onLogin={login} error={authError} />
         </div>
       ) : (
-        <>
-          {/* Sidebar */}
-          <aside className="w-1/3 border-r p-4 overflow-y-auto bg-gray-50">
+        <div className="flex h-full w-full overflow-hidden">
+          {/* Left Sidebar - History */}
+          <aside className="w-1/3 min-w-[280px] max-w-[360px] border-r p-4 overflow-y-auto bg-gray-50">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">History</h2>
               <button
@@ -76,13 +88,13 @@ function App() {
             )}
           </aside>
 
-          {/* Main Content */}
-          <main className="flex-1 p-6 overflow-y-auto">
+          {/* Center - Prompt + Safety + Weather */}
+          <main className="flex-1 p-6 overflow-y-auto bg-white">
             <h1 className="text-3xl font-bold mb-6">LLM Prompt</h1>
 
-            {/* Status Section */}
+            {/* Safety Section */}
             <div className="mb-6 grid grid-cols-1 gap-4">
-              {/* Seatbelt Status */}
+              {/* Seatbelt */}
               <div className="p-4 border rounded bg-yellow-100 flex justify-between items-center">
                 <div>
                   <strong>Seatbelt Status:</strong>{" "}
@@ -98,7 +110,7 @@ function App() {
                 </button>
               </div>
 
-              {/* Proximity Alert */}
+              {/* Proximity */}
               <div
                 className={`p-4 border rounded flex justify-between items-center ${
                   proximityAlert ? "bg-red-100" : "bg-green-100"
@@ -109,10 +121,10 @@ function App() {
                   {distance ? `${distance} meters` : "Loading..."}{" "}
                   {proximityAlert ? "🚨 DANGER!" : "✅ Safe"}
                 </div>
-                <div className="w-44" /> {/* Spacer to align with button */}
+                <div className="w-44" />
               </div>
 
-              {/* Weather Section */}
+              {/* Weather */}
               <div
                 className={`p-6 border-2 rounded-lg ${
                   weather?.insight?.includes("⛔") ||
@@ -165,7 +177,7 @@ function App() {
               onSubmit={async (e) => {
                 e.preventDefault();
                 await submitPrompt(prompt, model, username, language);
-                refresh(); // Refresh after saving
+                refresh();
               }}
               onRecord={() => startRecording(setPrompt)}
               onRead={() => readAloud(response)}
@@ -177,7 +189,10 @@ function App() {
             {/* Response Output */}
             <ResponseBox response={response} />
           </main>
-        </>
+
+          {/* Right Sidebar - Dashboard */}
+          <Dashboard userId={userId} />
+        </div>
       )}
     </div>
   );
