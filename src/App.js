@@ -88,7 +88,12 @@ function App() {
 
           {/* Center - Prompt + Safety + Weather */}
           <main className="flex-1 p-6 overflow-y-auto bg-white">
-            <h1 className="text-3xl font-bold mb-6">LLM Prompt</h1>
+            <h1
+              className="text-3xl font-bold mb-6"
+              style={{ textAlign: "center" }}
+            >
+              SMART OPERATOR ASSISTANCE
+            </h1>
 
             {/* Safety Section */}
             <div className="mb-6 grid grid-cols-1 gap-4">
