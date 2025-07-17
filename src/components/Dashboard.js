@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import config from "../config"; // Ensure config.API_BASE_URL is set
+import IncidentLog from "./IncidentLog"; // Create this component
 
 const statusColors = {
   Pending: "bg-yellow-100 text-yellow-800",
@@ -7,13 +9,13 @@ const statusColors = {
   Scheduled: "bg-gray-100 text-gray-800",
 };
 
-const Dashboard = ({ userId }) => {
+const Dashboard = ({ userId, language, isRecording, startRecording }) => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!userId) return;
-    fetch(`http://localhost:5000/api/dashboard/${userId}`)
+    fetch(`${config.API_BASE_URL}/api/dashboard/${userId}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.success) setTasks(data.tasks);
@@ -31,7 +33,7 @@ const Dashboard = ({ userId }) => {
         ? "Completed"
         : "Pending";
 
-    const res = await fetch(`http://localhost:5000/api/dashboard/${userId}/${taskId}`, {
+    const res = await fetch(`${config.API_BASE_URL}/api/dashboard/${userId}/${taskId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: nextStatus }),
@@ -60,7 +62,11 @@ const Dashboard = ({ userId }) => {
                 <div>
                   <p className="font-medium">{task.task}</p>
                   <p className="text-sm text-gray-500">⏰ {task.time}</p>
-                  <p className={`text-sm mt-1 px-2 py-1 inline-block rounded ${statusColors[task.status] || ""}`}>
+                  <p
+                    className={`text-sm mt-1 px-2 py-1 inline-block rounded ${
+                      statusColors[task.status] || ""
+                    }`}
+                  >
                     {task.status}
                   </p>
                 </div>
@@ -75,6 +81,14 @@ const Dashboard = ({ userId }) => {
           ))}
         </div>
       )}
+
+      {/* INCIDENT LOG BELOW */}
+      <IncidentLog
+        userId={userId}
+        language={language}
+        isRecording={isRecording}
+        startRecording={startRecording}
+      />
     </aside>
   );
 };
