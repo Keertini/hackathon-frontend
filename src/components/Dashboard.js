@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import config from "../config"; // Ensure config.API_BASE_URL is set
-import IncidentLog from "./IncidentLog"; // Create this component
+import config from "../config";
+import IncidentLog from "./IncidentLog";
+import MachineBehavior from "./MachineBehavior";
 
 const statusColors = {
   Pending: "bg-yellow-100 text-yellow-800",
@@ -9,9 +10,13 @@ const statusColors = {
   Scheduled: "bg-gray-100 text-gray-800",
 };
 
+// ✅ Provide your specific machine IDs here
+const YOUR_MACHINE_IDS = ["MACH001", "MACH007", "MACH016", "MACH010"];
+
 const Dashboard = ({ userId, language, isRecording, startRecording }) => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedMachineId, setSelectedMachineId] = useState(null);
 
   useEffect(() => {
     if (!userId) return;
@@ -55,18 +60,14 @@ const Dashboard = ({ userId, language, isRecording, startRecording }) => {
       ) : tasks.length === 0 ? (
         <p className="text-gray-500">No tasks assigned.</p>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4 mb-6">
           {tasks.map((task) => (
             <div key={task.task_id} className="bg-white shadow p-3 rounded border">
               <div className="flex justify-between items-center">
                 <div>
                   <p className="font-medium">{task.task}</p>
                   <p className="text-sm text-gray-500">⏰ {task.time}</p>
-                  <p
-                    className={`text-sm mt-1 px-2 py-1 inline-block rounded ${
-                      statusColors[task.status] || ""
-                    }`}
-                  >
+                  <p className={`text-sm mt-1 px-2 py-1 inline-block rounded ${statusColors[task.status] || ""}`}>
                     {task.status}
                   </p>
                 </div>
@@ -82,13 +83,38 @@ const Dashboard = ({ userId, language, isRecording, startRecording }) => {
         </div>
       )}
 
-      {/* INCIDENT LOG BELOW */}
+      {/* INCIDENT LOG */}
       <IncidentLog
         userId={userId}
         language={language}
         isRecording={isRecording}
         startRecording={startRecording}
       />
+
+      {/* MACHINE BEHAVIOR MONITORING */}
+      <div className="mt-6">
+        <h3 className="text-lg font-bold mb-2">🛠️ Machine Behavior</h3>
+
+        <div className="flex flex-wrap gap-2 mb-4">
+          {YOUR_MACHINE_IDS.map((id) => (
+            <button
+              key={id}
+              className={`px-2 py-1 rounded border ${
+                selectedMachineId === id
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-gray-800"
+              }`}
+              onClick={() => setSelectedMachineId(id)}
+            >
+              {id}
+            </button>
+          ))}
+        </div>
+
+        {selectedMachineId && (
+          <MachineBehavior machineId={selectedMachineId} />
+        )}
+      </div>
     </aside>
   );
 };
