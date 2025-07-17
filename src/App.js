@@ -6,15 +6,15 @@ import useHistory from "./hooks/useHistory";
 import AuthForm from "./components/AuthForm";
 import PromptForm from "./components/PromptForm";
 import ResponseBox from "./components/ResponseBox";
+import Dashboard from "./components/Dashboard";
 
 function App() {
-  const { isLoggedIn, authError, username, signup, login, logout } = useAuth();
+  const { isLoggedIn, authError, username, signup, login, logout, userId} = useAuth();
   const { loading, response, setResponse, submitPrompt } = usePrompt();
   const [prompt, setPrompt] = useState("");
   const [model, setModel] = useState("gemini");
   const [language, setLanguage] = useState("en-US");
-  const { isRecording, isAudioPlaying, startRecording, readAloud } =
-    useSpeech(language);
+  const { isRecording, isAudioPlaying, startRecording, readAloud } = useSpeech(language);
   const {
     history,
     loading: historyLoading,
@@ -23,16 +23,16 @@ function App() {
   } = useHistory(username);
 
   return (
-    <div className="App flex h-screen">
+    <div className="App h-screen">
       {!isLoggedIn ? (
-        // If not logged in, show the Auth Form centered
         <div className="m-auto w-full max-w-sm p-4">
           <AuthForm onSignup={signup} onLogin={login} error={authError} />
         </div>
       ) : (
-        <>
-          {/* Sidebar */}
-          <aside className="w-1/3 border-r p-4 overflow-y-auto bg-gray-50">
+        <div className="flex h-full w-full overflow-hidden">
+          
+          {/* Left Sidebar - History */}
+          <aside className="w-1/3 min-w-[280px] max-w-[360px] border-r p-4 overflow-y-auto bg-gray-50">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">History</h2>
               <button
@@ -67,8 +67,8 @@ function App() {
             )}
           </aside>
 
-          {/* Main Content */}
-          <main className="flex-1 p-6 overflow-y-auto">
+          {/* Center - Prompt + Response */}
+          <main className="flex-grow p-6 overflow-y-auto bg-white">
             <h1 className="text-3xl font-bold mb-4">LLM Prompt</h1>
             <PromptForm
               model={model}
@@ -80,7 +80,7 @@ function App() {
               onSubmit={async (e) => {
                 e.preventDefault();
                 await submitPrompt(prompt, model, username, language);
-                refresh(); // Refresh after saving
+                refresh();
               }}
               onRecord={() => startRecording(setPrompt)}
               onRead={() => readAloud(response)}
@@ -90,7 +90,11 @@ function App() {
             />
             <ResponseBox response={response} />
           </main>
-        </>
+
+          {/* Right - Operator Dashboard */}
+
+          <Dashboard userId={userId}/>
+        </div>
       )}
     </div>
   );
