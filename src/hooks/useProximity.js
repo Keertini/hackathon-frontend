@@ -4,13 +4,18 @@ const useProximity = () => {
   const [distance, setDistance] = useState(10.0);
   const [alert, setAlert] = useState(false);
   const audioRef = useRef(null);
+  const timeoutRef = useRef(null);
 
   const playAlert = useCallback(() => {
     if (!audioRef.current) {
       const audio = new Audio("/proximity-alert.mp3");
-      audio.loop = true;
       audio.play();
       audioRef.current = audio;
+
+      // Stop audio after 2 seconds
+      timeoutRef.current = setTimeout(() => {
+        stopAlert();
+      }, 2000);
     }
     setAlert(true);
   }, []);
@@ -18,8 +23,10 @@ const useProximity = () => {
   const stopAlert = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.pause();
+      audioRef.current.currentTime = 0; // rewind to start
       audioRef.current = null;
     }
+    clearTimeout(timeoutRef.current);
     setAlert(false);
   }, []);
 
@@ -33,9 +40,13 @@ const useProximity = () => {
       } else {
         stopAlert();
       }
-    }, 5000);
+    }, 20000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeoutRef.current);
+      stopAlert();
+    };
   }, [playAlert, stopAlert]);
 
   return { distance, alert };
