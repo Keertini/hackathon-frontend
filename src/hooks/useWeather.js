@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import config from "../config";
 
 const useWeather = () => {
   const [weather, setWeather] = useState(null);
@@ -9,8 +10,8 @@ const useWeather = () => {
       try {
         const url =
           lat && lon
-            ? `http://localhost:5000/api/weather?lat=${lat}&lon=${lon}`
-            : `http://localhost:5000/api/weather`;
+            ? `${config.API_BASE_URL}/api/weather?lat=${lat}&lon=${lon}`
+            : `${config.API_BASE_URL}/api/weather`;
         const response = await fetch(url);
         const data = await response.json();
         if (response.ok) {
